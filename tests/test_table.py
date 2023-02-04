@@ -242,8 +242,8 @@ class TestTable:
             "combines column data types when same name",
         ],
     )
-    def test_merge(self, simple_table, other_table, want_table):
-        got_table = simple_table.merge(other_table)
+    def test_add(self, simple_table, other_table, want_table):
+        got_table = simple_table + other_table
         assert want_table == got_table
 
     @pytest.mark.parametrize(

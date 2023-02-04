@@ -65,13 +65,6 @@ class Table:
 
         return [Column(name, dtypes) for name, dtypes in col_dict.items()]
 
-    def merge(self, other: Self) -> Self:
-        merged_cols = self._merge_columns(self.columns, other.columns)
-        return self.__class__(
-            name=self.name,
-            columns=merged_cols,
-        )
-
     def __eq__(self, other):
         if other.name != self.name:
             return False
@@ -83,3 +76,10 @@ class Table:
 
     def __hash__(self):
         return hash((self.name, *sorted((c.name, c.data_type) for c in self.columns)))
+
+    def __add__(self, other: Self) -> Self:
+        merged_cols = self._merge_columns(self.columns, other.columns)
+        return self.__class__(
+            name=self.name,
+            columns=merged_cols,
+        )
