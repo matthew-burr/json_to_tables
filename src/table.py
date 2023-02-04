@@ -1,11 +1,8 @@
 from dataclasses import dataclass
-from typing import List, NewType, Self
+from typing import List, Self
 
 
-DataType = NewType("DataType", str)
-
-
-class NewDataType:
+class DataType:
     def __init__(self, initial_value: str = None) -> None:
         self._values = {*initial_value.lower().split("|")} if initial_value else set()
 
@@ -19,6 +16,9 @@ class NewDataType:
         result = self.__class__(str(other))
         result._values = result._values.union(self._values)
         return result
+
+    def __radd__(self, other: Self | str) -> Self:
+        return self + other
 
     def __eq__(self, __o: object) -> bool:
         other = self.__class__(str(__o))
@@ -44,18 +44,14 @@ class Table:
 
     @staticmethod
     def _merge_columns(left: List[Column], right: List[Column]) -> List[Column]:
-        col_dict = {
-            left_col.name: {*left_col.data_type.split("|")} for left_col in left
-        }
+        col_dict = {left_col.name: left_col.data_type for left_col in left}
+
         for right_col in right:
-            col_dict[right_col.name] = col_dict.get(right_col.name, set()).union(
-                {*right_col.data_type.split("|")}
+            col_dict[right_col.name] = (
+                col_dict.get(right_col.name, "") + right_col.data_type
             )
 
-        return [
-            Column(name, DataType("|".join(sorted(dtypes))))
-            for name, dtypes in col_dict.items()
-        ]
+        return [Column(name, dtypes) for name, dtypes in col_dict.items()]
 
     def merge(self, other: Self) -> Self:
         merged_cols = self._merge_columns(self.columns, other.columns)

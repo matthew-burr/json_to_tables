@@ -44,12 +44,12 @@ class TestDataType:
         ],
     )
     def test_casing(self, initial_value, want):
-        got = str(tbl.NewDataType(initial_value))
+        got = str(tbl.DataType(initial_value))
         assert want == got
 
     def test_when_multi_type__sorted(self):
         want = "int|str"
-        got = str(tbl.NewDataType("str|int"))
+        got = str(tbl.DataType("str|int"))
         assert want == got
 
     @pytest.mark.parametrize(
@@ -60,7 +60,7 @@ class TestDataType:
         ],
     )
     def test_when_type_string_has_dupes__no_dupes(self, type_string, want):
-        got = str(tbl.NewDataType(type_string))
+        got = str(tbl.DataType(type_string))
         assert want == got
 
     @pytest.mark.parametrize(
@@ -69,27 +69,27 @@ class TestDataType:
             ("bar", "bar|foo"),
             ("foo", "foo"),
             ("str|bar", "bar|foo|str"),
-            (tbl.NewDataType("bar"), "bar|foo"),
+            (tbl.DataType("bar"), "bar|foo"),
         ],
     )
     def test_add__adds_only_new_types(self, add_type, want):
-        got = str(tbl.NewDataType("foo") + add_type)
+        got = str(tbl.DataType("foo") + add_type)
         assert want == got
 
     @pytest.mark.parametrize(
         "other,want_error",
         [
             ("str", False),
-            (tbl.NewDataType("int"), False),
+            (tbl.DataType("int"), False),
             (1, True),
         ],
     )
     def test_add_incorrect_arg_type__raises_error(self, other, want_error):
         if want_error:
             with pytest.raises(TypeError):
-                tbl.NewDataType("") + other
+                tbl.DataType("") + other
         else:
-            tbl.NewDataType("") + other
+            tbl.DataType("") + other
 
     @pytest.mark.parametrize(
         "test_str,should_equal",
@@ -100,17 +100,22 @@ class TestDataType:
     )
     def test_eq__works_with_str(self, test_str, should_equal):
         if should_equal:
-            assert tbl.NewDataType("foo") == test_str
+            assert tbl.DataType("foo") == test_str
         else:
-            assert tbl.NewDataType("foo") != test_str
+            assert tbl.DataType("foo") != test_str
 
     @pytest.mark.parametrize("test_str", ["foo|bar", "bar|foo"])
     def test_eq__order_irrelevant(self, test_str):
-        assert tbl.NewDataType("foo|bar") == test_str
+        assert tbl.DataType("foo|bar") == test_str
 
     @pytest.mark.parametrize("test_str", ["Foo|Bar", "foo|bar"])
     def test_eq__case_insensitive(self, test_str):
-        assert tbl.NewDataType("foo|bar") == test_str
+        assert tbl.DataType("foo|bar") == test_str
+
+    def test_add__reverse_order(self):
+        want = tbl.DataType("foo|bar")
+        got = "foo" + tbl.DataType("bar")
+        assert want == got
 
 
 class TestColumn:
@@ -162,7 +167,7 @@ class TestTable:
                 {"col4": "int"},
                 tbl.Table(
                     DEFAULT_NAME,
-                    _dict_to_columns(dict(**DEFAULT_COLUMNS, col4=tbl.DataType("int"))),
+                    _dict_to_columns(dict(**DEFAULT_COLUMNS, col4="int")),
                 ),
             ),
             (
