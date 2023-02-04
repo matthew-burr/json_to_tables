@@ -27,3 +27,6 @@ class Table:
             return False
 
         return all(col in self.columns for col in other.columns)
+
+    def __hash__(self):
+        return hash((self.name, *sorted((c.name, c.data_type) for c in self.columns)))
