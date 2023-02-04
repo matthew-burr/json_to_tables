@@ -34,6 +34,85 @@ def other_table(other_table_name, other_columns):
     return tbl.Table(name=other_table_name, columns=_dict_to_columns(other_columns))
 
 
+class TestDataType:
+    @pytest.mark.parametrize(
+        "initial_value,want",
+        [
+            ("Int", "int"),
+            ("int", "int"),
+            ("StR", "str"),
+        ],
+    )
+    def test_casing(self, initial_value, want):
+        got = str(tbl.NewDataType(initial_value))
+        assert want == got
+
+    def test_when_multi_type__sorted(self):
+        want = "int|str"
+        got = str(tbl.NewDataType("str|int"))
+        assert want == got
+
+    @pytest.mark.parametrize(
+        "type_string,want",
+        [
+            ("int|int", "int"),
+            ("Foo|foo", "foo"),
+        ],
+    )
+    def test_when_type_string_has_dupes__no_dupes(self, type_string, want):
+        got = str(tbl.NewDataType(type_string))
+        assert want == got
+
+    @pytest.mark.parametrize(
+        "add_type,want",
+        [
+            ("bar", "bar|foo"),
+            ("foo", "foo"),
+            ("str|bar", "bar|foo|str"),
+            (tbl.NewDataType("bar"), "bar|foo"),
+        ],
+    )
+    def test_add__adds_only_new_types(self, add_type, want):
+        got = str(tbl.NewDataType("foo") + add_type)
+        assert want == got
+
+    @pytest.mark.parametrize(
+        "other,want_error",
+        [
+            ("str", False),
+            (tbl.NewDataType("int"), False),
+            (1, True),
+        ],
+    )
+    def test_add_incorrect_arg_type__raises_error(self, other, want_error):
+        if want_error:
+            with pytest.raises(TypeError):
+                tbl.NewDataType("") + other
+        else:
+            tbl.NewDataType("") + other
+
+    @pytest.mark.parametrize(
+        "test_str,should_equal",
+        [
+            ("foo", True),
+            ("bar", False),
+        ],
+    )
+    def test_eq__works_with_str(self, test_str, should_equal):
+        if should_equal:
+            assert tbl.NewDataType("foo") == test_str
+        else:
+            assert tbl.NewDataType("foo") != test_str
+
+    @pytest.mark.parametrize("test_str", ["foo|bar", "bar|foo"])
+    def test_eq__order_irrelevant(self, test_str):
+        assert tbl.NewDataType("foo|bar") == test_str
+
+    @pytest.mark.parametrize("test_str", ["Foo|Bar", "foo|bar"])
+    def test_eq__case_insensitive(self, test_str):
+        assert tbl.NewDataType("foo|bar") == test_str
+
+
 class TestColumn:
     @pytest.mark.parametrize(
         "col1,col2,want",

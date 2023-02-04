@@ -5,6 +5,29 @@ from typing import List, NewType, Self
 DataType = NewType("DataType", str)
 
 
+class NewDataType:
+    def __init__(self, initial_value: str = None) -> None:
+        self._values = {*initial_value.lower().split("|")} if initial_value else set()
+
+    def __str__(self) -> str:
+        return "|".join(sorted(self._values))
+
+    def __add__(self, other: Self | str) -> Self:
+        if not isinstance(other, (self.__class__, str)):
+            return NotImplemented
+
+        result = self.__class__(str(other))
+        result._values = result._values.union(self._values)
+        return result
+
+    def __eq__(self, __o: object) -> bool:
+        other = self.__class__(str(__o))
+        return str(self) == str(other)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+
 @dataclass
 class Column:
     name: str
