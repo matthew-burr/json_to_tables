@@ -19,29 +19,27 @@ class Table:
     name: str
     columns: List[Column]
 
+    @staticmethod
+    def _merge_columns(left: List[Column], right: List[Column]) -> List[Column]:
+        col_dict = {
+            left_col.name: {*left_col.data_type.split("|")} for left_col in left
+        }
+        for right_col in right:
+            col_dict[right_col.name] = col_dict.get(right_col.name, set()).union(
+                {*right_col.data_type.split("|")}
+            )
+
+        return [
+            Column(name, DataType("|".join(sorted(dtypes))))
+            for name, dtypes in col_dict.items()
+        ]
+
     def merge(self, other: Self) -> Self:
-        merged = self.__class__(
+        merged_cols = self._merge_columns(self.columns, other.columns)
+        return self.__class__(
             name=self.name,
-            columns=[
-                *self.columns,
-            ],
+            columns=merged_cols,
         )
-
-        for other_col in other.columns:
-            my_col = next((s for s in merged.columns if s.name == other_col.name), None)
-            if my_col:
-                if my_col.data_type == other_col.data_type:
-                    continue
-
-                my_col.data_type = "|".join(
-                    sorted(
-                        {*my_col.data_type.split("|"), *other_col.data_type.split("|")}
-                    )
-                )
-            else:
-                merged.columns.append(other_col)
-
-        return merged
 
     def __eq__(self, other):
         if other.name != self.name:

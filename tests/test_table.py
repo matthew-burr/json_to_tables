@@ -2,7 +2,6 @@ import pytest
 
 import src.table as tbl
 
-
 DEFAULT_NAME = "simple"
 DEFAULT_COLUMNS = {
     "col1": "int",
@@ -59,6 +58,21 @@ class TestColumn:
     def test_hash(self, col1, col2, want):
         got = hash(col1) == hash(col2)
         assert got == want
+
+    @pytest.mark.parametrize(
+        "col,want",
+        [
+            (tbl.Column("a", tbl.DataType("int")), True),
+            (tbl.Column("a", tbl.DataType("str")), False),
+        ],
+    )
+    def test_in(self, col, want):
+        cols = {
+            tbl.Column("a", tbl.DataType("int")): None,
+            tbl.Column("b", tbl.DataType("int")): None,
+        }
+        got = col in cols
+        assert want == got
 
 
 class TestTable:
