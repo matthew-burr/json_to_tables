@@ -118,6 +118,26 @@ class TestDataType:
         assert want == got
 
 
+@pytest.fixture
+def other_column_name():
+    return "other"
+
+
+@pytest.fixture
+def other_column_dtype_str():
+    return "int"
+
+
+@pytest.fixture
+def other_column_data_type(other_column_dtype_str):
+    return tbl.DataType(other_column_dtype_str)
+
+
+@pytest.fixture
+def other_column(other_column_name, other_column_data_type):
+    return tbl.Column(other_column_name, other_column_data_type)
+
+
 class TestColumn:
     @pytest.mark.parametrize(
         "col1,col2,want",
@@ -157,6 +177,38 @@ class TestColumn:
         }
         got = col in cols
         assert want == got
+
+    @pytest.mark.parametrize(
+        "other_column_name,want_error",
+        [
+            ("foo", False),
+            ("bar", True),
+        ],
+    )
+    def test_add__errs_if_diff_name(self, other_column, want_error):
+        def _do_add():
+            tbl.Column("foo", tbl.DataType("int")) + other_column
+
+        if want_error:
+            with pytest.raises(TypeError):
+                _do_add()
+        else:
+            _do_add()
+
+    @pytest.mark.parametrize(
+        "other_column_name,other_column_dtype_str,want",
+        [
+            ("foo", "int", tbl.DataType("int")),
+            ("foo", "str", tbl.DataType("int|str")),
+        ],
+    )
+    def test_add__appends_data_type(self, other_column, want):
+        got = (tbl.Column("foo", tbl.DataType("int")) + other_column).data_type
+        assert got == want
+
+    def test_add__errs_if_not_col(self):
+        with pytest.raises(TypeError):
+            tbl.Column("a", tbl.DataType("b")) + "foo"
 
 
 class TestTable:

@@ -36,6 +36,18 @@ class Column:
     def __hash__(self) -> int:
         return hash(self.name)
 
+    def __add__(self, __o: Self) -> Self:
+        if not isinstance(__o, self.__class__):
+            return NotImplemented
+
+        if __o.name != self.name:
+            return NotImplemented
+
+        return Column(
+            self.name,
+            self.data_type + __o.data_type,
+        )
+
 
 @dataclass
 class Table:
