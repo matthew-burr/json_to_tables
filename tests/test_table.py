@@ -12,7 +12,7 @@ DEFAULT_COLUMNS = {
 
 
 def _dict_to_columns(col_dict: dict[str, str]) -> list[tbl.Column]:
-    return [tbl.Column(name, dtype) for name, dtype in col_dict.items()]
+    return [tbl.Column(name, tbl.DataType(dtype)) for name, dtype in col_dict.items()]
 
 
 @pytest.fixture
@@ -115,3 +115,36 @@ def test_col_eq(col1, col2, want):
 def test_table__hash(simple_table, other_table, want):
     got = hash(simple_table) == hash(other_table)
     assert want is got
+
+
+@pytest.mark.parametrize(
+    "other_columns,want_table",
+    [
+        (
+            {"col4": "int"},
+            tbl.Table(
+                DEFAULT_NAME,
+                _dict_to_columns(dict(**DEFAULT_COLUMNS, col4=tbl.DataType("int"))),
+            ),
+        ),
+        (
+            {"col3": "bool"},
+            tbl.Table(DEFAULT_NAME, _dict_to_columns(dict(**DEFAULT_COLUMNS))),
+        ),
+        (
+            {"col3": "str"},
+            tbl.Table(
+                DEFAULT_NAME,
+                _dict_to_columns({"col1": "int", "col2": "str", "col3": "bool|str"}),
+            ),
+        ),
+    ],
+    ids=[
+        "add a column",
+        "don't add existing column",
+        "combines column data types when same name",
+    ],
+)
+def test_table__merge(simple_table, other_table, want_table):
+    got_table = simple_table.merge(other_table)
+    assert want_table == got_table
