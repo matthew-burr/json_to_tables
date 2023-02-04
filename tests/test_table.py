@@ -296,7 +296,7 @@ class TestTable:
             "different column order",
         ],
     )
-    def test_table_eq__columns(self, simple_table, other_table, want):
+    def test_eq__columns(self, simple_table, other_table, want):
         got = other_table == simple_table
         assert got is want
 
@@ -308,6 +308,6 @@ class TestTable:
         ],
         ids=["same name", "different name"],
     )
-    def test_table_eq__name(self, simple_table, other_table, want):
+    def test_eq__name(self, simple_table, other_table, want):
         got = other_table == simple_table
         assert got is want
