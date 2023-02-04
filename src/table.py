@@ -10,6 +10,9 @@ class Column:
     name: str
     data_type: DataType
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
 
 @dataclass
 class Table:
