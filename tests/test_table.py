@@ -211,6 +211,40 @@ class TestColumn:
             tbl.Column("a", tbl.DataType("b")) + "foo"
 
 
+@pytest.fixture
+def child_table_name():
+    return "child"
+
+
+@pytest.fixture
+def child_table_columns():
+    return _dict_to_columns(
+        dict(
+            child_col1="int",
+            child_col2="str",
+            child_col3="bool",
+        )
+    )
+
+
+@pytest.fixture
+def child_table(child_table_name, child_table_columns):
+    return tbl.Table(
+        child_table_name,
+        child_table_columns,
+    )
+
+
+@pytest.fixture
+def simple_table_with_child(simple_table, child_table):
+    # simple_table.children = {child_table.name: child_table}
+    return tbl.Table(
+        simple_table.name,
+        [col for col in simple_table.columns],
+        {child_table.name: child_table} if child_table else dict(),
+    )
+
+
 class TestTable:
     @pytest.mark.parametrize(
         "other_columns,want_table",
@@ -311,3 +345,17 @@ class TestTable:
     def test_eq__name(self, simple_table, other_table, want):
         got = other_table == simple_table
         assert got is want
+
+    @pytest.mark.parametrize(
+        "left_table,right_table,want",
+        [
+            ("simple_table", "simple_table", True),
+            ("simple_table", "simple_table_with_child", False),
+        ],
+        ids=["no children", "different number of children"],
+    )
+    def test_eq__with_child(self, left_table, right_table, want, request):
+        left_table = request.getfixturevalue(left_table)
+        right_table = request.getfixturevalue(right_table)
+        got = left_table == right_table
+        assert got == want

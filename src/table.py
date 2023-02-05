@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import List, Self
+from dataclasses import dataclass, field
+from typing import Dict, List, Self
 
 
 class DataType:
@@ -53,6 +53,7 @@ class Column:
 class Table:
     name: str
     columns: List[Column]
+    children: Dict[str, Self] = field(default_factory=dict)
 
     @staticmethod
     def _merge_columns(left: List[Column], right: List[Column]) -> List[Column]:
@@ -72,7 +73,20 @@ class Table:
         if len(other.columns) != len(self.columns):
             return False
 
-        return all(col in self.columns for col in other.columns)
+        if not all(col in self.columns for col in other.columns):
+            return False
+
+        if len(self.children) != len(other.children):
+            return False
+
+        for child_name in self.children:
+            if child_name not in other.children:
+                return False
+
+            if self.children[child_name] != other.children[child_name]:
+                return False
+
+        return True
 
     def __hash__(self):
         return hash((self.name, *sorted((c.name, c.data_type) for c in self.columns)))
